@@ -155,7 +155,7 @@ void __attribute__ ((interrupt(USCI_A0_VECTOR))) USCI_A0_ISR (void)
 #error Compiler not supported!
 #endif
 {
-
+	char temp;
 	__dint();
 	switch(__even_in_range(UCA0IV, USCI_UART_UCTXCPTIFG)){
 	//if ( USCI_NONE){}
@@ -166,7 +166,9 @@ void __attribute__ ((interrupt(USCI_A0_VECTOR))) USCI_A0_ISR (void)
 	case USCI_NONE: break;
 	case USCI_UART_UCRXIFG:
 		//enqueue(uartData.rxQ, (UCA0RXBUF));
-		ParseGPS(UCA0RXBUF);
+		temp = UCA0RXBUF;
+		putChar(temp);
+		ParseGPS(temp);
 		__no_operation();
 		break;
 	case USCI_UART_UCTXIFG:

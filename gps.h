@@ -1,7 +1,7 @@
 #ifndef GPS_H
 #define GPS_H
 typedef struct{
-	char time[7];
+	char time[11];
 	char stat;
 	char lat[11];
 	char latHemi;

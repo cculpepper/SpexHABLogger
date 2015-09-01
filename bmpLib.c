@@ -46,33 +46,31 @@ int BMP180GetCalVals(void){
 
 #define BMP180_READ_ADDR 0xEF
 #define BMP180_WRITE_ADDR 0xEE
-	while(bmpCalCount < 11){
-		MSP430Delay(200);
-		SWI2CStart();
-		sendByteInput(BMP180_WRITE_ADDR);
-		
-		if (!receiveAck()){
-			return -1;
-		}
-		sendByteInput(bmpCalRegs[bmpCalCount]);
+	//MSP430Delay(200);
+	SWI2CStart();
+	sendByteInput(BMP180_WRITE_ADDR);
+	receiveAck();
+	sendByteInput(bmpCalRegs[0]);
+	receiveAck();
+	SWI2CStop();
+	SWI2CStart();
+	sendByteInput(BMP180_READ_ADDR);
+	receiveAck();
+	while(bmpCalCount < 20){
 
-		
-		if (!receiveAck()){
-			return -1;
-		}
-		SWI2CStop();
-		SWI2CStart();
-		sendByteInput(BMP180_READ_ADDR);
-		bmpCalBytes[2*bmpCalCount] = receiveByte();
-		sendAck();
+		bmpCalBytes[bmpCalCount++] = receiveByte();
+		sendAck(0);
 
-		bmpCalBytes[2*bmpCalCount+1] = receiveByte();
-		sendAck();
-		SWI2CStop();
-		SWI2CStart();
-		bmpCalCount++;					// Increment calibration count
+		bmpCalBytes[bmpCalCount++] = receiveByte();
+		sendAck(0);
+		//SWI2CStart();
 	}
+	bmpCalBytes[bmpCalCount++] = receiveByte();
+	sendAck(0);
 
+	bmpCalBytes[bmpCalCount++] = receiveByte();
+	sendAck(1);
+	SWI2CStop();
 	calInst->ac1 = (int16_t) ( (bmpCalBytes[0] << 8) | bmpCalBytes[1] );
 	calInst->ac2 = (int16_t) ( (bmpCalBytes[2] << 8) | bmpCalBytes[3] );
 	calInst->ac3 = (int16_t) ( (bmpCalBytes[4] << 8) | bmpCalBytes[5] );
@@ -107,23 +105,16 @@ int BMP180GetRawTemp(void){
 
 	SWI2CStart();
 	sendByteInput(BMP180_WRITE_ADDR);
-	if (!receiveAck()){
-		return -1;
-	}
+	receiveAck();
+
 	sendByteInput(BMP180_REG_CONTROL);
-	if (!receiveAck()){
-		return -1;
-	}
-	SWI2CStop();
-	SWI2CStart();
-	sendByteInput(BMP180_WRITE_ADDR);
-	if (!receiveAck()){
-		return -1;
-	}
+	receiveAck();
+	//SWI2CStop();
+	//SWI2CStart();
+	//sendByteInput(BMP180_WRITE_ADDR);
+	//receiveAck();
 	sendByteInput(BMP180_READ_TEMP);
-	if (!receiveAck()){
-		return -1;
-	}
+	receiveAck();
 	SWI2CStop();
 
 
@@ -146,24 +137,18 @@ int BMP180GetRawTemp(void){
 	// Start transmission
 	SWI2CStart();
 	sendByteInput(BMP180_WRITE_ADDR);
-	if (!receiveAck()){
-		return -1;
-	}
+	receiveAck();
 	sendByteInput(BMP180_REG_TEMPDATA);
-	if (!receiveAck()){
-		return -1;
-	}
+	receiveAck();
 	SWI2CStop();
 	SWI2CStart();
 	sendByteInput(BMP180_READ_ADDR);
-	if (!receiveAck()){
-		return -1;
-	}
+	receiveAck();
 	
 	g_bmpValBytes[0] = receiveByte();		// Receive first byte
-	sendAck();
+	sendAck(0);
 	g_bmpValBytes[1] = receiveByte();		// Receive second byte
-	sendAck();
+	sendAck(1);
 	SWI2CStop();
 	return 0;
 }
@@ -193,23 +178,12 @@ int BMP180GetRawPressure(uint8_t oss){
 
 	SWI2CStart();
 	sendByteInput(BMP180_WRITE_ADDR);
-	if (!receiveAck()){
-		return -1;
-	}
+	receiveAck();
 	sendByteInput(BMP180_REG_CONTROL);
-	if (!receiveAck()){
-		return -1;
-	}
-	SWI2CStop();
-	SWI2CStart();
-	sendByteInput(BMP180_WRITE_ADDR);
-	if (!receiveAck()){
-		return -1;
-	}
+	receiveAck();
 	sendByteInput((BMP180_READ_PRES_BASE + (oss < 6)));	// Send pressure measurement start command;
-	if (!receiveAck()){
-		return -1;
-	}
+
+	receiveAck();
 	SWI2CStop();
 
 
@@ -225,8 +199,6 @@ int BMP180GetRawPressure(uint8_t oss){
 		MSP430Delay(13500);					// (375 ticks) * (1 second / 32768 ticks) = 11.4 ms > 4.5 ms required
 		break;
 	case 3:
-		MSP430Delay(25500);					// (375 ticks) * (1 second / 32768 ticks) = 11.4 ms > 4.5 ms required
-		break;
 	default:
 		MSP430Delay(25500);					// (375 ticks) * (1 second / 32768 ticks) = 11.4 ms > 4.5 ms required
 		break;
@@ -235,25 +207,19 @@ int BMP180GetRawPressure(uint8_t oss){
 	// Start transmission
 	SWI2CStart();
 	sendByteInput(BMP180_WRITE_ADDR);
-	if (!receiveAck()){
-		return -1;
-	}
+	receiveAck();
 	sendByteInput(BMP180_REG_TEMPDATA);
-	if (!receiveAck()){
-		return -1;
-	}
+	receiveAck();
 	SWI2CStop();
 	SWI2CStart();
 	sendByteInput(BMP180_READ_ADDR);
-	if (!receiveAck()){
-		return -1;
-	}
+	receiveAck();
 	g_bmpValBytes[0] = receiveByte();		// Receive first byte
-	sendAck();
+	sendAck(0);
 	g_bmpValBytes[1] = receiveByte();		// Receive second byte
-	sendAck();
+	sendAck(0);
 	g_bmpValBytes[2] = receiveByte();		// Receive third byte
-	sendAck();
+	sendAck(1);
 	SWI2CStop();
 	return 0;
 }

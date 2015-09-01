@@ -91,6 +91,7 @@ void initAll(){
 	LED2INIT();
 	LED1INIT();
 	BMP180GetCalVals();
+	BMP180GetCalVals();
 	PCUARTInit();
 	SDOpenFile(&logfile);
 }
@@ -109,11 +110,11 @@ char MSP430Delay3(int cycles){
 int main(void)
 {
 	WDTCTL = WDTPW | WDTHOLD;                 // Stop Watchdog
+	PM5CTL0 &= ~LOCKLPM5;
 	//PCUartInit();
 	initAll();
 	testParse();
 	initGps();
-	PM5CTL0 &= ~LOCKLPM5;
 	// Enable USCI_A0 RX interrupt
 
 	//__bis_SR_register(LPM3_bits | GIE);       // Enter LPM3, interrupts enabled
@@ -121,14 +122,15 @@ int main(void)
 	__no_operation(); // For debugger
 	//I2CInit()
 	//cwSend("AB1TJ", 5);
-	f_printf(&logfile, "GPS Time, GPS Latitude, GPS Longitude, BMP180 Temperature, BMP180 Pressure\r\n");
+	f_printf(&logfile, "GPS Time, GPSDate, GPS Latitude, GPS Longitude, BMP180 Temperature, BMP180 Pressure\r\n");
 	f_sync(&logfile);
 	while(1){
-		gpsTerm();
-		f_printf(&logfile, "%s, %s, %s, %d, %d\r\n", gpsData.time, gpsData.lat, gpsData.lon, BMP180GetTemp(), BMP180GetPressure(7500));
+		//gpsTerm();
+		f_printf(&logfile, "%s, %s, %s%c, %s%c, %d, %d\r\n", gpsData.time, gpsData.date, gpsData.lat, gpsData.latHemi, gpsData.lon, gpsData.lonHemi, BMP180GetTemp(), BMP180GetPressure(7500));
 		f_sync(&logfile);
-		MSP430Delay(1000000);
-		LED2_TOGGLE();
+		MSP430Delay(10000000);
+		LED1_TOGGLE();
+
 
 	}
 }

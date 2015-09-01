@@ -8,7 +8,7 @@
 void sendByte(void);
 void sendByteInput(char);
 char receiveByte(void);
-void sendAck(void);
+void sendAck(char);
 int receiveAck(void);
 void SWI2CStart(void);
 void SWI2CStop(void);

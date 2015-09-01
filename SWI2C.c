@@ -1,5 +1,6 @@
 #include <msp430.h>
 #include <stdint.h>
+#include "LED1.h"
 
 // required
 #define SCL BIT5
@@ -18,7 +19,7 @@
 void sendByte(void);
 void sendByteInput(char);
 char receiveByte(void);
-void sendAck(void);
+void sendAck(char);
 int receiveAck(void);
 void SWI2CStart(void);
 void SWI2CStop(void);
@@ -54,7 +55,7 @@ char bmp180CheckComs(){
 		return FAILURE;
 	receiveByte();
 	if (rxData == 0x55){
-		sendAck();
+		sendAck(0);
 		return 1;
 	}
 	return 0;
@@ -80,6 +81,8 @@ char bmp180ReadBytes(char addr, char reg, int len, char* dest){
 	if(!ackFlag)
 		return 2;
 	SWI2CStop();
+	_NOP();
+	_NOP();
 	SWI2CStart();
 	sendByteInput(addr+1);
 	receiveAck();
@@ -88,56 +91,69 @@ char bmp180ReadBytes(char addr, char reg, int len, char* dest){
 	while (len--){
 		receiveByte();
 		dest[index++] = rxData;
-		sendAck();
+		sendAck(0);
 	}
 	SWI2CStop();
+	_NOP();
+	_NOP();
 	return 0;
 }
 
 
 
-// required
-// send byte to slave
-void sendByte(void) {
-	SDADIR |= SDA;
-	bitCounter = 0;
-	while(bitCounter < 8) {
-		(txData & BIT7) ? (SDAOUT |= SDA) : (SDAOUT &= ~SDA);
-		SCLOUT |= SCL;
-		txData <<= 1;
-		bitCounter++;
-		SCLOUT &= ~SCL;
-	}
-	SDAOUT |= SDA;
-	SDADIR &= ~SDA;
-}
 void sendByteInput(char input) {
-	SDADIR |= SDA;
+
+	/*LED2_ON();*/
+	//SDADIR |= SDA;
 	bitCounter = 0;
 	while(bitCounter < 8) {
-		(input & BIT7) ? (P3OUT |= SDA) : (P3OUT &= ~SDA);
-		SCLOUT |= SCL;
+		SCLOUT &= ~SCL;
+		SCLDIR |= SCL;
+		_NOP();
+		_NOP();
+		if (input & BIT7) {
+			SDADIR &= ~SDA ;
+		} else {
+			 SDAOUT &= ~SDA;
+			 SDADIR |= SDA;
+		}
+		// Strobe the clock up and down.
+		SCLDIR &= ~SCL;
 		input <<= 1;
 		bitCounter++;
+		_NOP();
+		SCLDIR |= SCL;
 		SCLOUT &= ~SCL;
+		_NOP();
+		_NOP();
 	}
-	SDAOUT |= SDA;
-	SDADIR &= ~SDA;
+	/*LED2_OFF();*/
+
 }
 // required
 // receive byte from slave
 char  receiveByte(void) {
+	/*LED2_ON();*/
 	char res;
 	bitCounter = 0;
+	SDADIR &= ~ SDA;
 	while(bitCounter < 8) {
-		SCLOUT |= SCL;
+		SCLDIR &= ~ SCL;
+		_NOP();
+		//MSP430Delay(50);
 		res <<= 1;
 		bitCounter++;
 		if(SDAIN & SDA) {
 			res |= BIT0;
 		}
+		_NOP();
+		_NOP();
 		SCLOUT &= ~SCL;
+		SCLDIR |= SCL;
+
+		//MSP430Delay(50);
 	}
+	/*LED2_OFF();*/
 	return res;
 }
 
@@ -155,41 +171,96 @@ void receiveBytePtr(char* ptr) {
 }
 // required
 // send master's ACK
-void sendAck(void) {
-	SDADIR |= SDA;
-	(ackFlag) ? (SDAOUT &= ~SDA) : (SDAOUT |= SDA);
-	SCLOUT |= SCL;
+void sendAck(char nack) {
+	// set nack to one to nack it.
+	if (nack){
+		SDADIR &= ~SDA;
+	} else {
+		SDAOUT &= ~SDA;
+		SDADIR |= SDA;
+	}
+	_NOP();
+	_NOP();
+	_NOP();
+	_NOP();
+	_NOP();
+	_NOP();
+	// To pulse the clock.
+	SCLDIR &= ~SCL;
+	_NOP();
+	_NOP();
+	_NOP();
+	_NOP();
+	_NOP();
+	_NOP();
 	SCLOUT &= ~SCL;
-	SDAOUT |= SDA;
+	SCLDIR |= SCL;
 	SDADIR &= ~SDA;
+	// Releasing the SDA
 }
 // required
 // receive slave's ACK
 int receiveAck(void) {
+	SDADIR &= ~SDA;
+	_NOP();
+	_NOP();
 	SCLOUT |= SCL;
-	(SDAIN & SDA) ? (ackFlag = 0) : (ackFlag = 1);
+	_NOP();
+	_NOP();
+	if (SDAIN & SDA) {
+		(ackFlag = 0) ;
+	} else {
+		(ackFlag = 1);
+	}
+	_NOP();
+	_NOP();
 	SCLOUT &= ~SCL;
+	_NOP();
+	_NOP();
 	return ackFlag;
 }
 // required
 // start condition
 void SWI2CStart(void) {
-	SCLOUT |= SCL;
-	SCLDIR |= SCL;
-	SCLOUT |= SCL;
+	/*LED2_ON();*/
+
+	SDADIR &= ~SDA;
+	SCLDIR &= ~SCL;
+	_NOP();
+	_NOP();
+	_NOP();
+	_NOP();
+	_NOP();
+	_NOP();
+	_NOP();
+	_NOP();
+	_NOP();
+	_NOP();
 	SDADIR |= SDA;
 	SDAOUT &= ~SDA;
-	SCLOUT &= ~SCL;
-	SDAOUT |= SDA;
-	SDADIR &= ~SDA;
+	_NOP();
+	_NOP();
+	//SCLDIR |= SCL;
+	//SCLDIR &= ~SCL;
+	_NOP();
+	_NOP();
+	/*LED2_OFF();*/
 
 }
 // required
 // stop condition
 void SWI2CStop(void) {
-	SDADIR |= SDA;
+	/*LED2_ON();*/
 	SDAOUT &= ~SDA;
-	SCLOUT |= SCL;
-	SDAOUT |= SDA;
+	SDADIR |= SDA;
+	_NOP();
+	_NOP();
+	_NOP();
+	SCLDIR &= ~SCL;
+	_NOP();
+	_NOP();
+	_NOP();
 	SDADIR &= ~SDA;
+	/*LED2_OFF();*/
+
 }

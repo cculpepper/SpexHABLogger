@@ -140,8 +140,7 @@ char initGps(void)
 	return 0;
 }
 
-char fmt[]=        "$GPRMC,tttttt,s,aaaaaaaa,A,ooooooooo,O,kkkkk,ccccc,dddddd,mmmmm,MCCCE";
-char nmea_test[] = "$GPRMC,183731,A,3907.482,N,12102.436,W,000.0,360.0,080301,015.5,E*67 ";
+//char fmt[]=        "$GPRMC,tttttt,s,aaaaaaaa,A,ooooooooo,O,kkkkk,ccccc,dddddd,mmmmm,MCCCE";
 // t: time
 // s: status
 // a: latitude
@@ -155,9 +154,8 @@ char nmea_test[] = "$GPRMC,183731,A,3907.482,N,12102.436,W,000.0,360.0,080301,01
 // M: Magnetic deviation ( E or W)
 // C: checksum. 
 //Example: "$GPRMC,225446,A,4916.45,N,12311.12,W,000.5,054.7,191194,020.3,E*68";
-int temp = 0;
-int state = 0;
-void ParseGPS(char c){
+#if 0
+void ParseGPSOld(char c){
 	char pos;
 	if (state <=6 && c != fmt[state]) {
 		state = 0;
@@ -222,6 +220,101 @@ void ParseGPS(char c){
 	}
 	return;
 }
+#endif
+char fmt[]=        "$GPRMC,t,s,a,A,o,O,k,c,d,m,MCCCE";
+char nmea_test[] = "$GPRMC,144140.00,A,1233.11671,N,12435.71394,W,0.128,,310815,,,A*6D";
+#define NULL 0
+int temp = 0;
+int state = 0;
+char* gpsCurField = NULL;
+char gpsTerm;
+void ParseGPS(char c){
+	char pos;
+	if (state <=6 && c != fmt[state]) {
+		state = 0;
+		temp = 0;
+		return;
+	}
+	if (state < 6){
+		state++;
+		return;
+	} else if (state == 6 && c == ','){
+		state++;
+		temp = 0;
+
+		gpsCurField = &(gpsData.time);
+		gpsTerm = 0;
+		return;
+	}
+	if (c == ','){
+		// At the end of a field.
+		// Terminate the string
+		state++;
+		if (fmt[state] == ','){
+			state++;
+			if (gpsTerm){
+				gpsCurField[temp] = 0;
+			}
+			temp = 0;
+			switch(fmt[state]){
+			case 't':
+				gpsCurField = &(gpsData.time);
+				gpsTerm = 1;
+				break;
+			case 's':
+				gpsCurField = &(gpsData.stat);
+				gpsTerm = 0;
+				break;
+			case 'a':
+				gpsCurField = &(gpsData.lat);
+				gpsTerm = 1;
+				break;
+			case 'A':
+				gpsCurField = &(gpsData.latHemi);
+				gpsTerm = 0;
+				break;
+			case 'o':
+				gpsCurField = &(gpsData.lon);
+				gpsTerm = 1;
+				break;
+			case 'O':
+				gpsCurField = &(gpsData.lonHemi);
+				gpsTerm = 0;
+				break;
+			case 'k':
+				gpsCurField = &(gpsData.speed);
+				gpsTerm = 1;
+				break;
+			case 'c':
+				gpsCurField = &(gpsData.course);
+				gpsTerm = 1;
+				break;
+			case 'd':
+				gpsCurField = &(gpsData.date);
+				gpsTerm = 1;
+				break;
+			default:
+				gpsCurField = NULL;
+				gpsTerm = 0;
+				break;
+			}// switch.
+		} else{
+			// Then we have two chars in a row. Probably bad.
+			state = 0;
+			temp = 0;
+		}
+	} else {
+		// Then we have a character.
+		if (gpsCurField != NULL){
+			gpsCurField[temp++] = c;
+		}
+	}
+}
+
+
+
+
+#if 0
 void gpsTerm(){
 	gpsData.time[6] = 0;
 	gpsData.lat[8] = 0;
@@ -230,7 +323,7 @@ void gpsTerm(){
 	gpsData.course[5] = 0;
 	gpsData.date[7] = 0;
 }
-
+#endif
 int testParse(){
 	int i;
 	i = 0;
