@@ -29,7 +29,6 @@
 #include <stdlib.h>
 
 
-tBMP180Cals *calInst;
 // Functions -----------------------------------------------------------------------------------------
 int BMP180GetCalVals(void){
 
@@ -87,7 +86,7 @@ int BMP180GetCalVals(void){
 
 
 int BMP180GetRawTemp(void){
-
+	int32_t ret;
 	// Reset counts
 	/*g_bmpByteCountEnd = 0x02;		// Each send will be responded with 2 bytes*/
 
@@ -150,7 +149,9 @@ int BMP180GetRawTemp(void){
 	g_bmpValBytes[1] = receiveByte();		// Receive second byte
 	sendAck(1);
 	SWI2CStop();
-	return 0;
+
+	ret = (int32_t)( (g_bmpValBytes[0] << 8) + g_bmpValBytes[1] );
+	return ret;
 }
 
 
@@ -175,7 +176,7 @@ int32_t BMP180GetTemp(void){
 
 
 int BMP180GetRawPressure(uint8_t oss){
-
+	int32_t ret;
 	SWI2CStart();
 	sendByteInput(BMP180_WRITE_ADDR);
 	receiveAck();
@@ -221,7 +222,8 @@ int BMP180GetRawPressure(uint8_t oss){
 	g_bmpValBytes[2] = receiveByte();		// Receive third byte
 	sendAck(1);
 	SWI2CStop();
-	return 0;
+	ret = (int32_t)( (g_bmpValBytes[0] << 16) + (g_bmpValBytes[1] << 8) + g_bmpValBytes[2]);
+	return ret;
 }
 
 

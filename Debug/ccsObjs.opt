@@ -1,1 +1,1 @@
-"./SWI2C.obj" "./TII2C.obj" "./bmpLib.obj" "./cw.obj" "./dsLib.obj" "./gps.obj" "./main.obj" "./queue.obj" "./sd.obj" "./uart.obj" "./FatFS/diskio.obj" "./FatFS/ff.obj" "../lnk_msp430fr5969.cmd" -l"libmath.a" -l"libc.a" 
+"./SWI2C.obj" "./TII2C.obj" "./accel.obj" "./bmpLib.obj" "./cw.obj" "./dsLib.obj" "./gps.obj" "./main.obj" "./queue.obj" "./sd.obj" "./uart.obj" "./FatFS/diskio.obj" "./FatFS/ff.obj" "../lnk_msp430fr5969.cmd" -l"libmath.a" -l"libc.a" 

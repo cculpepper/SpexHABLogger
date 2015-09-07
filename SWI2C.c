@@ -81,8 +81,6 @@ char bmp180ReadBytes(char addr, char reg, int len, char* dest){
 	if(!ackFlag)
 		return 2;
 	SWI2CStop();
-	_NOP();
-	_NOP();
 	SWI2CStart();
 	sendByteInput(addr+1);
 	receiveAck();
@@ -94,8 +92,6 @@ char bmp180ReadBytes(char addr, char reg, int len, char* dest){
 		sendAck(0);
 	}
 	SWI2CStop();
-	_NOP();
-	_NOP();
 	return 0;
 }
 
@@ -109,8 +105,6 @@ void sendByteInput(char input) {
 	while(bitCounter < 8) {
 		SCLOUT &= ~SCL;
 		SCLDIR |= SCL;
-		_NOP();
-		_NOP();
 		if (input & BIT7) {
 			SDADIR &= ~SDA ;
 		} else {
@@ -121,11 +115,8 @@ void sendByteInput(char input) {
 		SCLDIR &= ~SCL;
 		input <<= 1;
 		bitCounter++;
-		_NOP();
 		SCLDIR |= SCL;
 		SCLOUT &= ~SCL;
-		_NOP();
-		_NOP();
 	}
 	/*LED2_OFF();*/
 
@@ -139,15 +130,12 @@ char  receiveByte(void) {
 	SDADIR &= ~ SDA;
 	while(bitCounter < 8) {
 		SCLDIR &= ~ SCL;
-		_NOP();
 		//MSP430Delay(50);
 		res <<= 1;
 		bitCounter++;
 		if(SDAIN & SDA) {
 			res |= BIT0;
 		}
-		_NOP();
-		_NOP();
 		SCLOUT &= ~SCL;
 		SCLDIR |= SCL;
 
@@ -179,20 +167,8 @@ void sendAck(char nack) {
 		SDAOUT &= ~SDA;
 		SDADIR |= SDA;
 	}
-	_NOP();
-	_NOP();
-	_NOP();
-	_NOP();
-	_NOP();
-	_NOP();
 	// To pulse the clock.
 	SCLDIR &= ~SCL;
-	_NOP();
-	_NOP();
-	_NOP();
-	_NOP();
-	_NOP();
-	_NOP();
 	SCLOUT &= ~SCL;
 	SCLDIR |= SCL;
 	SDADIR &= ~SDA;
@@ -202,21 +178,13 @@ void sendAck(char nack) {
 // receive slave's ACK
 int receiveAck(void) {
 	SDADIR &= ~SDA;
-	_NOP();
-	_NOP();
 	SCLOUT |= SCL;
-	_NOP();
-	_NOP();
 	if (SDAIN & SDA) {
 		(ackFlag = 0) ;
 	} else {
 		(ackFlag = 1);
 	}
-	_NOP();
-	_NOP();
 	SCLOUT &= ~SCL;
-	_NOP();
-	_NOP();
 	return ackFlag;
 }
 // required
@@ -226,24 +194,10 @@ void SWI2CStart(void) {
 
 	SDADIR &= ~SDA;
 	SCLDIR &= ~SCL;
-	_NOP();
-	_NOP();
-	_NOP();
-	_NOP();
-	_NOP();
-	_NOP();
-	_NOP();
-	_NOP();
-	_NOP();
-	_NOP();
 	SDADIR |= SDA;
 	SDAOUT &= ~SDA;
-	_NOP();
-	_NOP();
 	//SCLDIR |= SCL;
 	//SCLDIR &= ~SCL;
-	_NOP();
-	_NOP();
 	/*LED2_OFF();*/
 
 }
@@ -253,13 +207,7 @@ void SWI2CStop(void) {
 	/*LED2_ON();*/
 	SDAOUT &= ~SDA;
 	SDADIR |= SDA;
-	_NOP();
-	_NOP();
-	_NOP();
 	SCLDIR &= ~SCL;
-	_NOP();
-	_NOP();
-	_NOP();
 	SDADIR &= ~SDA;
 	/*LED2_OFF();*/
 

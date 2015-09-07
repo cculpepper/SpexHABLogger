@@ -84,12 +84,14 @@
 #include "bmpLib.h"
 #include "uart.h"
 #include "gps.h"
+#include "accel.h"
 #include "./FatFS/ff.h"
 FIL logfile;
 
 void initAll(){
 	LED2INIT();
 	LED1INIT();
+	accel_init();
 	BMP180GetCalVals();
 	BMP180GetCalVals();
 	PCUARTInit();
@@ -112,22 +114,32 @@ int main(void)
 	WDTCTL = WDTPW | WDTHOLD;                 // Stop Watchdog
 	PM5CTL0 &= ~LOCKLPM5;
 	//PCUartInit();
+	testParse(); // Get some data into the GPS struct. 
 	initAll();
-	testParse();
-	initGps();
-	// Enable USCI_A0 RX interrupt
 
-	//__bis_SR_register(LPM3_bits | GIE);       // Enter LPM3, interrupts enabled
 
 	__no_operation(); // For debugger
 	//I2CInit()
 	//cwSend("AB1TJ", 5);
-	f_printf(&logfile, "GPS Time, GPSDate, GPS Latitude, GPS Longitude, BMP180 Temperature, BMP180 Pressure\r\n");
+	// Temp: X1 = (UT - AC6) * AC5 / 2^15
+	// X2 = MC * 2^11/(X1+MD)
+	// B5 = X1 + X2
+	// T = (B5 + 8)/2^4
+	// T =
+	f_printf(&logfile, "AC1:,%d,AC2:,%d,AC3:,%d,AC4:,%u,AC5,%u,AC6,%u,B1,%d,B2:,%d,MB:,%d,MC:,%d,MD:,%d\r\n", calInst->ac1,calInst->ac2,calInst->ac3,calInst->ac4,calInst->ac5,calInst->ac6,calInst->b1,calInst->b2,calInst->mb,calInst->mc,calInst->md);
+	f_printf(&logfile, "GPS Time, GPSDate, GPS Latitude, GPS Longitude, BMP180 Temperature, BMP180 Pressure,x1,X2,B5,TEMP,B6,X1,X2,X3,B3,X1,X2,X3,b4,B7,P,X1,X1,x2,p,XAccel,YAccel,ZAccel\r\n");
+	//f_printf(&logfile, "X1:,=(%d-%u)*%u/2**15,X2:,=%d*2**11/($B$2+%d),B5:,=$B$2+$D$2\r\n")
+	//f_printf(&logfile, "B6:,=$B$6-4000,X1:,(%d*($B$2*$B$2/2**12))/2**11,X2:,=%d*$B$2/2**11,X3:$i")
+	f_printf(&logfile, "%s, %s, %s%c, %s%c, %d, %u,=(E3-$L$1)*$J$1/2^15,=$T$1*2^11/(G3+$V$1),=G3+H3,=(I3+8)/2^4,=I3-4000,=($P$1*(K3*K3/2^12))/2^11,=$D$1*K3/2^11,=L3+M3,=((($B$1*4+N3)*2)+2)/4,=$F$1*K3/2^13,=($N$1*(K3*K3/2^12))/2^16,=(P3+Q3+2)/4,=$H$1*(R3+32768)/2^15,=(F3-O3)*(50000/2),\"=IF(T3<HEX2DEC(80000000),T3*2/S3,T3/S3*2)\",=(U3/2^8)*(U3/2^8),=V3*3038/2^16,=(-7357*U3)/2^16,=U3+(W3+X3+3971)/2^4\r\n", gpsData.time, gpsData.date, gpsData.lat, gpsData.latHemi, gpsData.lon, gpsData.lonHemi, BMP180GetRawTemp(), BMP180GetRawPressure(7500));
 	f_sync(&logfile);
 	while(1){
 		//gpsTerm();
-		f_printf(&logfile, "%s, %s, %s%c, %s%c, %d, %d\r\n", gpsData.time, gpsData.date, gpsData.lat, gpsData.latHemi, gpsData.lon, gpsData.lonHemi, BMP180GetTemp(), BMP180GetPressure(7500));
+		uartEnableRx();
+		MSP430Delay(2000);// Get a fix.
+		accel_read();
+		f_printf(&logfile, "%s,%s,%s%c,%s%c,%d,%u,%d,%d,%d\r\n", gpsData.time, gpsData.date, gpsData.lat, gpsData.latHemi, gpsData.lon, gpsData.lonHemi, BMP180GetRawTemp(), BMP180GetRawPressure(7500),accelData.x,accelData.y,accelData.z);
 		f_sync(&logfile);
+		uartDisableRx();
 		MSP430Delay(10000000);
 		LED1_TOGGLE();
 

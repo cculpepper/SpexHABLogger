@@ -15,4 +15,9 @@ void putChar(char ch);
 char getChar(void);
 void putNum(int num);
 int getString(char*, int); // returns num of things in the string the int arg is the length of the buffer.
+
+#define uartDisableRx() UCA1IE &= ~UCRXIE
+#define uartEnableRx() UCA1IE |= UCRXIE
+
 #endif
+

@@ -2,7 +2,8 @@
 #define SWI2C
 #include <msp430.h>
 #include <stdint.h>
-
+#define ACK 0
+#define NACK 1
 // required
 // required
 void sendByte(void);

@@ -9,6 +9,7 @@ CMD_SRCS += \
 C_SRCS += \
 ../SWI2C.c \
 ../TII2C.c \
+../accel.c \
 ../bmpLib.c \
 ../cw.c \
 ../dsLib.c \
@@ -21,6 +22,7 @@ C_SRCS += \
 OBJS += \
 ./SWI2C.obj \
 ./TII2C.obj \
+./accel.obj \
 ./bmpLib.obj \
 ./cw.obj \
 ./dsLib.obj \
@@ -33,6 +35,7 @@ OBJS += \
 C_DEPS += \
 ./SWI2C.pp \
 ./TII2C.pp \
+./accel.pp \
 ./bmpLib.pp \
 ./cw.pp \
 ./dsLib.pp \
@@ -45,6 +48,7 @@ C_DEPS += \
 C_DEPS__QUOTED += \
 "SWI2C.pp" \
 "TII2C.pp" \
+"accel.pp" \
 "bmpLib.pp" \
 "cw.pp" \
 "dsLib.pp" \
@@ -57,6 +61,7 @@ C_DEPS__QUOTED += \
 OBJS__QUOTED += \
 "SWI2C.obj" \
 "TII2C.obj" \
+"accel.obj" \
 "bmpLib.obj" \
 "cw.obj" \
 "dsLib.obj" \
@@ -69,6 +74,7 @@ OBJS__QUOTED += \
 C_SRCS__QUOTED += \
 "../SWI2C.c" \
 "../TII2C.c" \
+"../accel.c" \
 "../bmpLib.c" \
 "../cw.c" \
 "../dsLib.c" \

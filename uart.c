@@ -15,10 +15,11 @@ int charsAvail(void){
 void PCUARTInit(void){
 	// Configure GPIO
 	WDTCTL = WDTPW | WDTHOLD;                 // Stop Watchdog
-
-	P2SEL1 |= BIT0 | BIT1;                    // USCI_A0 UART operation
-	P2SEL0 &= ~(BIT0 | BIT1);
-	PJSEL0 |= BIT4 | BIT5;                    // For XT1
+#define UART1RX 	BIT5
+#define UART1TX	BIT6
+	P2SEL1 |= UART1RX | UART1TX;                    // USCI_A0 UART operation
+	P2SEL0 &= ~(UART1RX | UART1TX);
+	PJSEL0 |= BIT5 | BIT4;                    // For XT1
 
 	// Disable the GPIO power-on default high-impedance mode to activate
 	// previously configured port settings
@@ -37,20 +38,22 @@ void PCUARTInit(void){
 	CSCTL0_H = 0;                             // Lock CS registers
 
 	// Configure USCI_A0 for UART mode
-	UCA0CTLW0 = UCSWRST;                      // Put eUSCI in reset
-	UCA0CTLW0 |= UCSSEL__ACLK;                // CLK = ACLK
-	UCA0BR0 = 3;                              // 9600 baud
-	UCA0MCTLW |= 0x5300;                      // 32768/9600 - INT(32768/9600)=0.41
+	UCA1CTLW0 = UCSWRST;                      // Put eUSCI in reset
+	UCA1CTLW0 |= UCSSEL__ACLK;                // CLK = ACLK
+	UCA1BR0 = 3;                              // 9600 baud
+	UCA1MCTLW |= 0x5300;                      // 32768/9600 - INT(32768/9600)=0.41
 	// UCBRSx value = 0x53 (See UG)
-	UCA0BR1 = 0;
-	UCA0CTL1 &= ~UCSWRST;                     // Initialize eUSCI
-	UCA0IE |= UCRXIE | UCTXCPTIE;//| UCTXIE;
+	UCA1BR1 = 0;
+	UCA1CTL1 &= ~UCSWRST;                     // Initialize eUSCI
+	UCA1IE |= UCRXIE | UCTXCPTIE;//| UCTXIE;
 	__bis_SR_register(GIE);
 	uartData.txQ = initQueue(BUFFLEN);
-	uartData.rxQ = initQueue(BUFFLEN);
-
+	//uartData.rxQ = initQueue(BUFFLEN);
+	__eint();
+	//putString("This is a test");
 
 }
+
 int getString(char* str, int len){
 	len--;
 	char temp;
@@ -101,7 +104,7 @@ void putChar(char ch){
 	if (uartData.txQ->stored == uartData.txQ->capacity) {
 		UCA0IFG |= UCTXIFG;
 	}
-	while (uartData.txQ->stored == uartData.txQ->capacity) {
+	while ((uartData.txQ->stored == uartData.txQ->capacity) & uartData.txQ->stored > 0) {
 		UCA0IE |=  UCTXIE;
 	}
 	__dint();
@@ -147,17 +150,17 @@ void putNum(int num){
 }
 
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector=USCI_A0_VECTOR
-__interrupt void USCI_A0_ISR(void)
+#pragma vector=USCI_A1_VECTOR
+__interrupt void USCI_A1_ISR(void)
 #elif defined(__GNUC__)
-void __attribute__ ((interrupt(USCI_A0_VECTOR))) USCI_A0_ISR (void)
+void __attribute__ ((interrupt(USCI_A1_VECTOR))) USCI_A1_ISR (void)
 #else
 #error Compiler not supported!
 #endif
 {
 	char temp;
-	__dint();
-	switch(__even_in_range(UCA0IV, USCI_UART_UCTXCPTIFG)){
+ 	__dint();
+	switch(__even_in_range(UCA1IV, USCI_UART_UCTXCPTIFG)){
 	//if ( USCI_NONE){}
 	//if ( UCA0IV & USCI_UART_UCRXIFG){
 	/*if (UARTRXLen < MAXRXBUFF){*/
@@ -166,8 +169,8 @@ void __attribute__ ((interrupt(USCI_A0_VECTOR))) USCI_A0_ISR (void)
 	case USCI_NONE: break;
 	case USCI_UART_UCRXIFG:
 		//enqueue(uartData.rxQ, (UCA0RXBUF));
-		temp = UCA0RXBUF;
-		putChar(temp);
+		temp = UCA1RXBUF;
+		//putChar(temp);
 		ParseGPS(temp);
 		__no_operation();
 		break;
@@ -175,9 +178,9 @@ void __attribute__ ((interrupt(USCI_A0_VECTOR))) USCI_A0_ISR (void)
 		//if( UCA0IV & USCI_UART_UCTXIFG){
 		if (numEnqueued (uartData.txQ)){
 			// Then we actually have something to send.
-			UCA0TXBUF = dequeue(uartData.txQ);
+			UCA1TXBUF = dequeue(uartData.txQ);
 		} else {
-			UCA0IE &=  ~UCTXIE;
+			UCA1IE &=  ~UCTXIE;
 		}	
 		/*if (UARTTXOutIndex < UARTTXLen){*/
 		/*while(!(UCA0IFG & UCTXIFG));*/
@@ -192,9 +195,9 @@ void __attribute__ ((interrupt(USCI_A0_VECTOR))) USCI_A0_ISR (void)
 	case USCI_UART_UCSTTIFG:
 		if (numEnqueued (uartData.txQ)){
 			// Then we actually have something to send.
-			UCA0TXBUF = dequeue(uartData.txQ);
+			UCA1TXBUF = dequeue(uartData.txQ);
 		} else {
-			UCA0IE &=  ~UCTXIE;
+			UCA1IE &=  ~UCTXIE;
 		}
 		break;
 	case USCI_UART_UCTXCPTIFG: break;

@@ -1,5 +1,6 @@
 #include "uart.h"
 #include "gps.h"
+#include "LED1.h"
 #include "msp430.h"
 GPSData gpsData;
 int strInStr(char *big, char *little)
@@ -221,7 +222,7 @@ void ParseGPSOld(char c){
 	return;
 }
 #endif
-char fmt[]=        "$GPRMC,t,s,a,A,o,O,k,c,d,m,MCCCE";
+char fmt[]=        "$GPRMC,t,s,a,A,o,O,k,c,d,Em,MCCCE";
 char nmea_test[] = "$GPRMC,144140.00,A,1233.11671,N,12435.71394,W,0.128,,310815,,,A*6D";
 #define NULL 0
 int temp = 0;
@@ -293,6 +294,12 @@ void ParseGPS(char c){
 				gpsCurField = &(gpsData.date);
 				gpsTerm = 1;
 				break;
+			case 'E':
+				uartDisableRx();
+				gpsCurField = NULL;
+				gpsTerm = 0;
+				state = 0;
+				temp = 0;
 			default:
 				gpsCurField = NULL;
 				gpsTerm = 0;

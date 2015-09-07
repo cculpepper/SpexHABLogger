@@ -16,12 +16,12 @@ C_DEPS += \
 ./FatFS/ff.pp 
 
 C_DEPS__QUOTED += \
-"FatFS\diskio.pp" \
-"FatFS\ff.pp" 
+"FatFS/diskio.pp" \
+"FatFS/ff.pp" 
 
 OBJS__QUOTED += \
-"FatFS\diskio.obj" \
-"FatFS\ff.obj" 
+"FatFS/diskio.obj" \
+"FatFS/ff.obj" 
 
 C_SRCS__QUOTED += \
 "../FatFS/diskio.c" \
