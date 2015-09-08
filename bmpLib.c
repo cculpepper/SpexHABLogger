@@ -27,12 +27,22 @@
 #include "SWI2C.h"
 #include "bmpLib.h"
 #include <stdlib.h>
-
+void set_bmp180(int index){
+	set_port(index);
+	if (index == 0){
+		calInst = calInst0;
+	} else {
+		calInst = calInst1;
+	}
+}
 
 // Functions -----------------------------------------------------------------------------------------
-int BMP180GetCalVals(void){
+int BMP180GetCalVals(int index){
+	// Index is the interface to initialize
 
 	calInst = (tBMP180Cals*) malloc(sizeof(tBMP180Cals));
+	set_bmp180(index);
+
 	// Initialize variables
 	static const uint8_t bmpCalRegs[11] = {BMP180_REG_CAL_AC1, BMP180_REG_CAL_AC2, BMP180_REG_CAL_AC3, BMP180_REG_CAL_AC4, BMP180_REG_CAL_AC5, BMP180_REG_CAL_AC6, BMP180_REG_CAL_B1, BMP180_REG_CAL_B2, BMP180_REG_CAL_MB, BMP180_REG_CAL_MC, BMP180_REG_CAL_MD};
 	uint8_t bmpCalBytes[22];		// Received byte storage
