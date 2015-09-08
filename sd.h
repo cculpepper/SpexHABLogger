@@ -8,7 +8,7 @@
 #include "./FatFS/ff.h"
 #ifndef SD_H_
 #define SD_H_
-int SDOpenFile ( FIL *logfile);
+int SDOpenFile ( FIL *logfile, char* filename);
 #define MCLK_FREQUENCY 1000000		// Used in mmc.c but is project specific
 
 #endif /* SD_H_ */

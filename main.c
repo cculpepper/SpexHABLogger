@@ -105,7 +105,7 @@ void initAll(){
 	accel_init();
 	BMP180GetCalVals(1);
 	BMP180GetCalVals(0);
-	SDOpenFile(&logfile);
+	SDOpenFile(&logfile,"LOG1_00.csv");
 }
 char MSP430Delay3(int cycles){
 	TA1CCTL0 = 0;
@@ -121,7 +121,8 @@ char MSP430Delay3(int cycles){
 
 int main(void)
 {
-	int sec,hour,min;
+	int sec,hour,min,lines;
+	lines = 0;
 	WDTCTL = WDTPW | WDTHOLD;                 // Stop Watchdog
 	PM5CTL0 &= ~LOCKLPM5;
 	//PCUartInit();
@@ -146,6 +147,7 @@ int main(void)
 	//f_printf(&logfile, "B6:,=$B$6-4000,X1:,(%d*($B$2*$B$2/2**12))/2**11,X2:,=%d*$B$2/2**11,X3:$i")
 	f_printf(&logfile, ",%s, %s, %s%c, %s%c,, %d, %u,,,,,,,,=(G3-$L$1)*$J$1/2^15,=$T$1*2^11/(P3+$V$1),=P3+Q3,=(R3+8)/2^4,=R3-4000,=($P$1*(T3*T3/2^12))/2^11,=$D$1*T3/2^11,=U3+V3,=((($B$1*4+W3)*2)+2)/4,=$F$1*T3/2^13,=($N$1*(T3*T3/2^12))/2^16,=(Y3+Z3+2)/4,=$H$1*(AA3+32768)/2^15,=(H3-X3)*(50000/2),\"=IF(AC3<HEX2DEC(80000000),AC3*2/AB3,AC3/AB3*2)\",=(AD3/2^8)*(AD3/2^8),=AE3*3038/2^16,=(-7357*AD3)/2^16,=AD3+(AF3+AG3+3971)/2^4\r\n", gpsData.time, gpsData.date, gpsData.lat, gpsData.latHemi, gpsData.lon, gpsData.lonHemi, BMP180GetRawTemp(), BMP180GetRawPressure(7500));
 	f_sync(&logfile);
+	lines += 4;
 	while(0){
 		//gpsTerm();
 		uartEnableRx();
@@ -157,16 +159,22 @@ int main(void)
 		set_bmp180(1);
 		f_printf(&logfile, "%d,%u,%d,%d,%d\r\n",BMP180GetRawTemp(), BMP180GetRawPressure(7500),accelData.x,accelData.y,accelData.z);
 		f_sync(&logfile);
+		lines += 1;
 		LED2_TOGGLE();
 		LED1_TOGGLE();
 		//uartDisableRx();
 		//MSP430Delay(10000000);
-
+		if (lines > 20000){
+			f_close(&logfile);
+			SDOpenFile(&logfile, "CONTU00.csv");
+			lines = 0;
+		}
 
 	}
 	// This is the going down code.
+	f_close(&logfile);
 	//SDCloseFile(&logfile);
-	//SDOpenFile(&logfile);
+	SDOpenFile(&logfile, "DWN1_00.csv");
 	f_printf(&logfile, "RTCTime,Alt,internalTemp,X,Y,Z\r\n");
 	f_sync(&logfile);
 	set_port(0);
@@ -178,8 +186,13 @@ int main(void)
 		sec = RTCSEC;
 		f_printf(&logfile,"%02u:%02u:%02u,%s,,%d,%d,%d\r\n",hour,min,sec,gpsData.lat,accelData.x,accelData.y,accelData.z);
 		f_sync(&logfile);
-
+		lines += 1;
 		LED1_TOGGLE();
+		if (lines > 20000){
+			f_close(&logfile);
+			SDOpenFile(&logfile, "CONTD00.csv");
+			lines = 0;
+		}
 	}
 }
 

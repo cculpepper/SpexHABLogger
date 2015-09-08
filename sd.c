@@ -21,7 +21,7 @@ uint16_t fp;		// Used for sizeof
 uint8_t status = 17;	// Status variable that should change if successful
 
 
-int SDOpenFile ( FIL *logfile)
+int SDOpenFile ( FIL *logfile, char* filename)
 {
 	  /*WDTCTL = WDTPW | WDTHOLD;       // Stop WDT*/
 
@@ -92,7 +92,7 @@ int SDOpenFile ( FIL *logfile)
 
 //	DS3231GetCurrentTime();
 
-	  char filename[] = "LOG2_00.csv";
+	  //char filename[] = "LOG2_00.csv";
 	  FILINFO fno;
 	  FRESULT fr;
 	  uint8_t i;
