@@ -13,4 +13,5 @@ void sendAck(char);
 int receiveAck(void);
 void SWI2CStart(void);
 void SWI2CStop(void);
+int set_port(int num);
 #endif

@@ -73,15 +73,18 @@ typedef struct{
 
 
 tBMP180Cals *calInst;
+tBMP180Cals *calInst1;
+tBMP180Cals *calInst0;
 
 
 // Functions -----------------------------------------------------------------------------------------
-extern int BMP180GetCalVals(void);
+extern int BMP180GetCalVals(init);
 extern int BMP180GetRawTemp(void);
 extern int32_t BMP180GetTemp(void);
 extern int BMP180GetRawPressure(uint8_t oss);
 extern int32_t BMP180GetPressure(uint8_t oss);
-extern int BMP180Init(void);
+extern int BMP180Init(int);
+extern void set_180(int);
 
 
 #endif /* BMPLIB_H_ */

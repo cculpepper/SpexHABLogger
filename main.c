@@ -87,14 +87,24 @@
 #include "accel.h"
 #include "./FatFS/ff.h"
 FIL logfile;
+void initRTC(){
+	RTCCTL0 = 0;
+	RTCCTL1 = 0;
+	RTCCTL2 = 0;
+	RTCSEC = 0;
+	RTCHOUR = 0;
+	RTCMIN = 0;
 
+}
 void initAll(){
 	LED2INIT();
 	LED1INIT();
-	accel_init();
-	BMP180GetCalVals();
-	BMP180GetCalVals();
 	PCUARTInit();
+	initRTC();
+	set_port(0);
+	accel_init();
+	BMP180GetCalVals(1);
+	BMP180GetCalVals(0);
 	SDOpenFile(&logfile);
 }
 char MSP430Delay3(int cycles){
@@ -111,6 +121,7 @@ char MSP430Delay3(int cycles){
 
 int main(void)
 {
+	int sec,hour,min;
 	WDTCTL = WDTPW | WDTHOLD;                 // Stop Watchdog
 	PM5CTL0 &= ~LOCKLPM5;
 	//PCUartInit();
@@ -126,24 +137,49 @@ int main(void)
 	// B5 = X1 + X2
 	// T = (B5 + 8)/2^4
 	// T =
-	f_printf(&logfile, "AC1:,%d,AC2:,%d,AC3:,%d,AC4:,%u,AC5,%u,AC6,%u,B1,%d,B2:,%d,MB:,%d,MC:,%d,MD:,%d\r\n", calInst->ac1,calInst->ac2,calInst->ac3,calInst->ac4,calInst->ac5,calInst->ac6,calInst->b1,calInst->b2,calInst->mb,calInst->mc,calInst->md);
-	f_printf(&logfile, "GPS Time, GPSDate, GPS Latitude, GPS Longitude, BMP180 Temperature, BMP180 Pressure,x1,X2,B5,TEMP,B6,X1,X2,X3,B3,X1,X2,X3,b4,B7,P,X1,X1,x2,p,XAccel,YAccel,ZAccel\r\n");
+	set_bmp180(0);
+	f_printf(&logfile, "0:AC1:,%d,AC2:,%d,AC3:,%d,AC4:,%u,AC5,%u,AC6,%u,B1,%d,B2:,%d,MB:,%d,MC:,%d,MD:,%d\r\n", calInst->ac1,calInst->ac2,calInst->ac3,calInst->ac4,calInst->ac5,calInst->ac6,calInst->b1,calInst->b2,calInst->mb,calInst->mc,calInst->md);
+	set_bmp180(1);
+	f_printf(&logfile, "1:AC1:,%d,AC2:,%d,AC3:,%d,AC4:,%u,AC5,%u,AC6,%u,B1,%d,B2:,%d,MB:,%d,MC:,%d,MD:,%d\r\n", calInst->ac1,calInst->ac2,calInst->ac3,calInst->ac4,calInst->ac5,calInst->ac6,calInst->b1,calInst->b2,calInst->mb,calInst->mc,calInst->md);
+	f_printf(&logfile, "RTCTime,GPStime,Date,Lat,Lon,Alt,180Temp0,180Press0,180Temp1,180Press1,X,Y,Z,Press2,Temp2,x1,X2,B5,TEMP,B6,X1,X2,X3,B3,X1,X2,X3,b4,B7,P,X1,X1,x2,p\r\n");
 	//f_printf(&logfile, "X1:,=(%d-%u)*%u/2**15,X2:,=%d*2**11/($B$2+%d),B5:,=$B$2+$D$2\r\n")
 	//f_printf(&logfile, "B6:,=$B$6-4000,X1:,(%d*($B$2*$B$2/2**12))/2**11,X2:,=%d*$B$2/2**11,X3:$i")
-	f_printf(&logfile, "%s, %s, %s%c, %s%c, %d, %u,=(E3-$L$1)*$J$1/2^15,=$T$1*2^11/(G3+$V$1),=G3+H3,=(I3+8)/2^4,=I3-4000,=($P$1*(K3*K3/2^12))/2^11,=$D$1*K3/2^11,=L3+M3,=((($B$1*4+N3)*2)+2)/4,=$F$1*K3/2^13,=($N$1*(K3*K3/2^12))/2^16,=(P3+Q3+2)/4,=$H$1*(R3+32768)/2^15,=(F3-O3)*(50000/2),\"=IF(T3<HEX2DEC(80000000),T3*2/S3,T3/S3*2)\",=(U3/2^8)*(U3/2^8),=V3*3038/2^16,=(-7357*U3)/2^16,=U3+(W3+X3+3971)/2^4\r\n", gpsData.time, gpsData.date, gpsData.lat, gpsData.latHemi, gpsData.lon, gpsData.lonHemi, BMP180GetRawTemp(), BMP180GetRawPressure(7500));
+	f_printf(&logfile, ",%s, %s, %s%c, %s%c,, %d, %u,,,,,,,,=(G3-$L$1)*$J$1/2^15,=$T$1*2^11/(P3+$V$1),=P3+Q3,=(R3+8)/2^4,=R3-4000,=($P$1*(T3*T3/2^12))/2^11,=$D$1*T3/2^11,=U3+V3,=((($B$1*4+W3)*2)+2)/4,=$F$1*T3/2^13,=($N$1*(T3*T3/2^12))/2^16,=(Y3+Z3+2)/4,=$H$1*(AA3+32768)/2^15,=(H3-X3)*(50000/2),\"=IF(AC3<HEX2DEC(80000000),AC3*2/AB3,AC3/AB3*2)\",=(AD3/2^8)*(AD3/2^8),=AE3*3038/2^16,=(-7357*AD3)/2^16,=AD3+(AF3+AG3+3971)/2^4\r\n", gpsData.time, gpsData.date, gpsData.lat, gpsData.latHemi, gpsData.lon, gpsData.lonHemi, BMP180GetRawTemp(), BMP180GetRawPressure(7500));
 	f_sync(&logfile);
-	while(1){
+	while(0){
 		//gpsTerm();
 		uartEnableRx();
-		MSP430Delay(2000);// Get a fix.
+		//MSP430Delay(2000);// Get a fix.
+		LED1_ON();
+		set_bmp180(0);
 		accel_read();
-		f_printf(&logfile, "%s,%s,%s%c,%s%c,%d,%u,%d,%d,%d\r\n", gpsData.time, gpsData.date, gpsData.lat, gpsData.latHemi, gpsData.lon, gpsData.lonHemi, BMP180GetRawTemp(), BMP180GetRawPressure(7500),accelData.x,accelData.y,accelData.z);
+		f_printf(&logfile, ",%s,%s,%s%c,%s%c,,%d,%u,",gpsData.time, gpsData.date, gpsData.lat, gpsData.latHemi, gpsData.lon, gpsData.lonHemi, BMP180GetRawTemp(), BMP180GetRawPressure(7500));
+		set_bmp180(1);
+		f_printf(&logfile, "%d,%u,%d,%d,%d\r\n",BMP180GetRawTemp(), BMP180GetRawPressure(7500),accelData.x,accelData.y,accelData.z);
 		f_sync(&logfile);
-		uartDisableRx();
-		MSP430Delay(10000000);
+		LED2_TOGGLE();
 		LED1_TOGGLE();
+		//uartDisableRx();
+		//MSP430Delay(10000000);
 
 
+	}
+	// This is the going down code.
+	//SDCloseFile(&logfile);
+	//SDOpenFile(&logfile);
+	f_printf(&logfile, "RTCTime,Alt,internalTemp,X,Y,Z\r\n");
+	f_sync(&logfile);
+	set_port(0);
+	while(1){
+		accel_read();
+		while ((RTCCTL1 & BIT4) == 0);
+		hour =RTCHOUR;
+		min = RTCMIN;
+		sec = RTCSEC;
+		f_printf(&logfile,"%02u:%02u:%02u,%s,,%d,%d,%d\r\n",hour,min,sec,gpsData.lat,accelData.x,accelData.y,accelData.z);
+		f_sync(&logfile);
+
+		LED1_TOGGLE();
 	}
 }
 

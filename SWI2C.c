@@ -3,13 +3,21 @@
 #include "LED1.h"
 
 // required
-#define SCL BIT5
-#define SDA BIT6
+/*#define SCL BIT5*/
+/*#define SDA BIT6*/
 #define SCLOUT P3OUT
 #define SCLDIR P3DIR
 #define SDAOUT P3OUT
 #define SDADIR P3DIR
 #define SDAIN  P3IN
+
+//volatile unsigned char SCLOUT;
+//volatile unsigned char SCLDIR;
+//volatile unsigned char SDAOUT;
+//volatile unsigned char SDADIR;
+//volatile unsigned char SDAIN ;
+char SCL;
+char SDA;
 
 #define READ 0xA1
 #define WRITE 0xA0
@@ -31,7 +39,25 @@ unsigned char rxData = 0;
 unsigned char ackFlag = 0;
 unsigned char bitCounter = 0;
 unsigned int address = 0; // 12 bit address, upper 4 bits should be 0s.
-
+int set_port(int num){
+	if (num == 0){
+		//SCLOUT =P3OUT;
+		//SCLDIR = P3DIR;
+		//SDAOUT = P3OUT;
+		//SDADIR = P3DIR;
+		//SDAIN = P3IN;
+		SCL = BIT5;
+		SDA = BIT6;
+	} else {
+		//SCLOUT =P3OUT;
+		//SCLDIR = P3DIR;
+		//SDAOUT = P3OUT;
+		//SDADIR = P3DIR;
+		//SDAIN = P3IN;
+		SCL = BIT5;
+		SDA = BIT4;
+	}
+}
 char bmp180CheckComs(){
 	SWI2CStart();
 	txData = 0xEE;
