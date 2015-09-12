@@ -1,19 +1,20 @@
 #ifndef GPS_H
 #define GPS_H
+#define GPSSTRINGLEN 15
 typedef struct{
-	char time[11];
+	char time[GPSSTRINGLEN];
 	char stat;
-	char lat[11];
+	char lat[GPSSTRINGLEN];
 	char latHemi;
-	char lon[12];
+	char lon[GPSSTRINGLEN];
 	char lonHemi;
-	char speed[6];
-	char course[6];
-	char date[7];
+	char speed[GPSSTRINGLEN];
+	char course[GPSSTRINGLEN];
+	char date[GPSSTRINGLEN];
+	char alt[GPSSTRINGLEN];
+	char altUnit;
 }GPSData;
-
 char initGps();
-
 
 char updatePos();
 
@@ -22,10 +23,9 @@ extern GPSData gpsData;
 void ParseGPS(char c);
 
 
-volatile unsigned int Time, Msecs, Knots, Course, Date;
-volatile long Lat, Long;
-volatile char Fix;
 int testParse();
+signed int getAlt();
+
 
 
 

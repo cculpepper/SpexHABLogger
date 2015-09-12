@@ -49,10 +49,10 @@ int accel_init(void){
 	if (id != 0xE5){
 		return -1;
 	}
-	// Need to disable the FIFO, bypass mode. 
+	// Need to disable the FIFO, bypassmode.
 	// Need to set the rate code to 0x7 because well be pulling data at
 	// 	less than 12.5Hz
-	//
+	// TODO: Make datarate faster for way down
 		
 	data = 0x7; // Enable 12.5 Hz update rate
 	accel_write_reg(ACCELBWRATEREG, &data, 1);
