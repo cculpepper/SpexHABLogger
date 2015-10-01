@@ -9,7 +9,7 @@ typedef struct {
 } uartStruct;
 
 int charsAvail(void);
-void PCUARTInit(void);
+int PCUARTInit(void);
 void putString(char* str);
 void putChar(char ch);
 char getChar(void);

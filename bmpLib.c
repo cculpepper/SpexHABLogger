@@ -55,7 +55,7 @@ int BMP180GetCalVals(int index){
 
 #define BMP180_READ_ADDR 0xEF
 #define BMP180_WRITE_ADDR 0xEE
-	//MSP430Delay(200);
+	//MSP430Delay3(200);
 	SWI2CStart();
 	sendByteInput(BMP180_WRITE_ADDR);
 	receiveAck();
@@ -141,7 +141,7 @@ int BMP180GetRawTemp(void){
 	/*TB0CCR0 = 175;							// (175 ticks) * (1 second / 32768 ticks) = 5.3 ms > 4.5 ms required*/
 	/*TB0CTL = TBSSEL__ACLK | MC__UP;         // ACLK, up mode*/
 
-	MSP430Delay(450); // Delay 450 us
+	MSP430Delay3(1); // Delay 450 us
 
 	// Start transmission
 	SWI2CStart();
@@ -180,7 +180,7 @@ int32_t BMP180GetTemp(void){
 	// Calculate B5
 	int32_t B5 = X1 + X2;
 
-	g_bmpTemp = ( ((float)B5 + 8.0f)/16.0f )/10.0f;		// Divide by 10 because result is normally in 0.1C - See datasheet
+	g_bmpTemp = ( ((float)B5 + 8.0f)/16.0f );///10.0f;		// Divide by 10 because result is normally in 0.1C - See datasheet
 	return g_bmpTemp;
 }
 
@@ -201,17 +201,17 @@ int BMP180GetRawPressure(uint8_t oss){
 	// Setup timer based on oversampling setting
 	switch(oss){
 	case 0:
-		MSP430Delay(4500);					// (375 ticks) * (1 second / 32768 ticks) = 11.4 ms > 4.5 ms required
+		MSP430Delay3(6);					// (375 ticks) * (1 second / 32768 ticks) = 11.4 ms > 4.5 ms required
 		break;
 	case 1:
-		MSP430Delay(7500);					// (450 ticks) * (1 second / 32768 ticks) = 13.7 ms > 7.5 ms required
+		MSP430Delay3(9);					// (450 ticks) * (1 second / 32768 ticks) = 13.7 ms > 7.5 ms required
 		break;
 	case 2:
-		MSP430Delay(13500);					// (375 ticks) * (1 second / 32768 ticks) = 11.4 ms > 4.5 ms required
+		MSP430Delay3(14);					// (375 ticks) * (1 second / 32768 ticks) = 11.4 ms > 4.5 ms required
 		break;
 	case 3:
 	default:
-		MSP430Delay(25500);					// (375 ticks) * (1 second / 32768 ticks) = 11.4 ms > 4.5 ms required
+		MSP430Delay3(26);					// (375 ticks) * (1 second / 32768 ticks) = 11.4 ms > 4.5 ms required
 		break;
 	}
 

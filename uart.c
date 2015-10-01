@@ -12,7 +12,7 @@ volatile uartStruct uartData;
 int charsAvail(void){
 	return uartData.rxQ->stored;
 }
-void PCUARTInit(void){
+int PCUARTInit(void){
 	// Configure GPIO
 	WDTCTL = WDTPW | WDTHOLD;                 // Stop Watchdog
 #define UART1RX 	BIT5
@@ -51,6 +51,7 @@ void PCUARTInit(void){
 	//uartData.rxQ = initQueue(BUFFLEN);
 	__eint();
 	//putString("This is a test");
+	return 0;
 
 }
 

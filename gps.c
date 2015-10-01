@@ -25,7 +25,6 @@ char initGps(void)
 	PCUARTInit();
 	return 0;
 }
-#endif
 /*char fmt[]=        "$GPRMC,t,s,l,L,o,O,k,c,d,Em,MCCCE";*/
 /*char nmea_test[] = "$GPRMC,144140.00,A,1233.11671,N,12435.71394,W,0.128,,310815,,,A*6D";*/
 char fmt[]=        "$GPGGA,t,l,L,o,O,s,i,i,a,A,E";
@@ -164,5 +163,50 @@ signed int getAlt(){
 		tens *= 10;
 	}
 	return res;
+
 }
+
+signed int getLon(){
+	int i;
+	char stat;
+	signed int res;
+	int tens;
+	tens = 1;
+	res = 0;
+	stat = gpsData.stat - '0';
+	i = 0;
+	if (!(stat > 0 && stat < 6)){
+		return -1;
+	}
+	while(gpsData.lon[i]){
+		i++;
+	}
+	while (i--){
+		res += (gpsData.lon[i] - '0') * tens;
+		tens *= 10;
+	}
+	return res;
+
+}
+signed int getLat(){
+	int i;
+	char stat;
+	signed int res;
+	int tens;
+	tens = 1;
+	res = 0;
+	stat = gpsData.stat - '0';
+	i = 0;
+	if (!(stat > 0 && stat < 6)){
+		return -1;
+	}
+	while(gpsData.lat[i]){
+		i++;
+	}
+	while (i--){
+		res += (gpsData.lat[i] - '0') * tens;
+		tens *= 10;
+	}
+	return res;
+
 }
