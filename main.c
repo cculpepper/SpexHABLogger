@@ -39,9 +39,15 @@ void initAll(){
 	LED2INIT();
 	LED1INIT();
 	if (initClock()){
-		/* Blink CLK
+		/* Blink UART
 		 * Wait for press.
 		 */
+		cwSend("CLK", 3);
+		while (P1IN & BIT1);
+	} else {
+
+		cwSend("CLKGO", 5);
+		while (P1IN & BIT1);
 	}
 
 	while (P1IN & BIT1);
@@ -59,24 +65,48 @@ void initAll(){
 	initRTC();
 	set_port(0);
 	if (accel_init()){
-		/* Blink CLK
+		/* Blink UART
 		 * Wait for press.
 		 */
+		cwSend("ACCL", 4);
+		while (P1IN & BIT1);
+	} else {
+
+		cwSend("ACCLGO", 6);
+		while (P1IN & BIT1);
 	}
 	if (BMP180GetCalVals(1)){
-		/* Blink BMP1
+		/* Blink UART
 		 * Wait for press.
 		 */
+		cwSend("BMP1", 4);
+		while (P1IN & BIT1);
+	} else {
+
+		cwSend("BMP1GO", 6);
+		while (P1IN & BIT1);
 	}
 	if (BMP180GetCalVals(0)){
-		/* Blink BMP2
+		/* Blink UART
 		 * Wait for press.
 		 */
+		cwSend("BMP0GO", 4);
+		while (P1IN & BIT1);
+	} else {
+
+		cwSend("BMP1GO", 6);
+		while (P1IN & BIT1);
 	}
 	if (SDOpenFile(&logfile,"LOG1_00.csv")){
-		/* Blink SD
+		/* Blink UART
 		 * Wait for press.
 		 */
+		cwSend("SD", 2);
+		while (P1IN & BIT1);
+	} else {
+
+		cwSend("SDGO", 4);
+		while (P1IN & BIT1);
 	}
 }
 char MSP430Delay3(int cycles){
@@ -132,12 +162,6 @@ int main(void)
 	f_printf(&logfile, ",%s, %s, %s%c, %s%c,, %d, %u,,,,,,,,=(G3-$L$1)*$J$1/2^15,=$T$1*2^11/(P3+$V$1),=P3+Q3,=(R3+8)/2^4,=R3-4000,=($P$1*(T3*T3/2^12))/2^11,=$D$1*T3/2^11,=U3+V3,=((($B$1*4+W3)*2)+2)/4,=$F$1*T3/2^13,=($N$1*(T3*T3/2^12))/2^16,=(Y3+Z3+2)/4,=$H$1*(AA3+32768)/2^15,=(H3-X3)*(50000/2),\"=IF(AC3<HEX2DEC(80000000),AC3*2/AB3,AC3/AB3*2)\",=(AD3/2^8)*(AD3/2^8),=AE3*3038/2^16,=(-7357*AD3)/2^16,=AD3+(AF3+AG3+3971)/2^4\r\n", gpsData.time, gpsData.date, gpsData.lat, gpsData.latHemi, gpsData.lon, gpsData.lonHemi, BMP180GetRawTemp(), BMP180GetRawPressure(7500));
 	f_sync(&logfile);
 	lines += 4;
-	//for(;;){
-		MSP430Delay3(50);
-		LED2_TOGGLE();
-		MSP430Delay3(50);
-		LED2_TOGGLE();
-	//}
 	while(1){
 		//gpsTerm();
 		uartEnableRx();
